@@ -8,24 +8,65 @@
 
 import UIKit
 
-class CalendarDataSource {
+class CalendarDataSource:NSObject, UICollectionViewDataSource {
     
     
-    var events:[CalendarModel]?
+    var events:[CalendarEvent]?
     
+    typealias configureCellBlock = (_ cell: CalendarCell, _ indexPath: NSIndexPath, _ event: CalendarEvent) -> Void
+    
+    typealias configureHeaderViewBlock = (_ headerView: HeaderView, _ kind: String, _ indexPath: NSIndexPath) -> Void
+    
+    var configureCell:configureCellBlock?
+    
+    
+    override func awakeFromNib() {
+        self.generateSampleData()
+    }
     
     func generateSampleData() {
         
+        self.events? = Array(repeating: CalendarModel.randomEvent(), count: 20)
+        
     }
     
-    //MARK: -
+    //MARK: - CalendarDataSource
+    func eventAtIndexPath(indexPath: NSIndexPath) -> CalendarEvent {
+        return self.events![indexPath.item]
+    }
+    
+    func indexPathsOfEvents(betweenMinDayIndex minDayIndex: Int, maxDayIndex: Int, minStartHour: Int, maxStartHour: Int) -> [NSIndexPath] {
+        var indexPaths = [NSIndexPath]()
+        for (index, event) in (self.events?.enumerated())! {
+            if event.day! >= minDayIndex && event.day! <= maxDayIndex && event.startHour! >= minStartHour && event.startHour! <= maxDayIndex {
+                indexPaths.append(NSIndexPath(item: index, section: 0))
+            }
+            
+        }
+        return indexPaths
+    }
+    
+    //MARK: - UICollectionViewDataSource
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return 0
+        return (self.events?.count)!
     }
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "cell", for: indexPath)
+        let event = self.events?[indexPath.row]
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "CalendarCell", for: indexPath) as! CalendarCell
+        if (self.configureCell != nil) {
+            self.configureCell!(cell, indexPath as NSIndexPath, event!)
+        }
         return cell
         
     }
+    
+    func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
+        let headerView = collectionView.dequeueReusableCell(withReuseIdentifier: "HeaderView", for: indexPath)
+        return headerView
+    }
+    
+//    func configureCellHandler(cellBlock: @escaping configureCellBlock) {
+//        self.configureCell = cellBlock
+//    }
     
 }

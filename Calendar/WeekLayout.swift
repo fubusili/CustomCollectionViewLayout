@@ -27,22 +27,68 @@ class WeekLayout: UICollectionViewLayout {
     
     override func layoutAttributesForElements(in rect: CGRect) -> [UICollectionViewLayoutAttributes]? {
         
-        var layoutAttributes = [NSIndexPath]()
-//        let visibleIndexPath = self.indep
+        var layoutAttributes = [UICollectionViewLayoutAttributes]()
+        let visibleIndexPaths = self.indexPathsOfItems(inRect: rect)
         
+        for indexPath in visibleIndexPaths {
+            let attributes = self.layoutAttributesForItem(at: indexPath as IndexPath)
+            layoutAttributes.append(attributes!)
+            
+        }
         
+        let dayHeaderViewIndexPaths = self.indexPathsOfDayHeaderViews(inRect: rect)
+        for indexPath in dayHeaderViewIndexPaths {
+            let attributes = self.layoutAttributesForSupplementaryView(ofKind: "DayHeaderView", at: indexPath as IndexPath)
+            layoutAttributes.append(attributes!)
+        }
+        
+        let hourHeaderViewIndexPaths = self.indexPathsOfDayHeaderViews(inRect: rect)
+        for indexPath in hourHeaderViewIndexPaths {
+            let attributes = self.layoutAttributesForSupplementaryView(ofKind: "HourHeaderView", at: indexPath as IndexPath)
+            layoutAttributes.append(attributes!)
+        }
+        
+        return layoutAttributes
+    }
+    
+    override func layoutAttributesForItem(at indexPath: IndexPath) -> UICollectionViewLayoutAttributes? {
+        let dataSource = self.collectionView?.dataSource as! CalendarDataSource
+        let event = dataSource.eventAtIndexPath(indexPath: indexPath as NSIndexPath)
+        let attributes = UICollectionViewLayoutAttributes(forCellWith: indexPath)
+        attributes.frame = self.frameForEvent(event: event)
+        return attributes
+    }
+    
+    override func layoutAttributesForSupplementaryView(ofKind elementKind: String, at indexPath: IndexPath) -> UICollectionViewLayoutAttributes? {
+        let attributes = UICollectionViewLayoutAttributes(forSupplementaryViewOfKind: elementKind, with: indexPath)
+        let totalWidth = self.collectionViewContentSize.width
+        if elementKind == "DayHeaderView" {
+            let availabelWidth = totalWidth - CGFloat(WeekLayout.hourHeaderWidth)
+            let widthPerDay = availabelWidth / CGFloat(WeekLayout.daysPerWeek)
+            attributes.frame = CGRect(x: CGFloat(WeekLayout.hourHeaderWidth) + widthPerDay * CGFloat(indexPath.item), y: 0, width: widthPerDay, height: CGFloat(WeekLayout.dayHeaderHeight))
+            attributes.zIndex = -10
+        } else if elementKind == "HourHeaderView" {
+            
+            attributes.frame = CGRect(x: 0, y: CGFloat(WeekLayout.hourHeaderWidth) + CGFloat(WeekLayout.heightPerHour) * CGFloat(indexPath.item), width: totalWidth, height: CGFloat(WeekLayout.heightPerHour))
+        }
+        
+        return attributes
         
     }
     
+    override func shouldInvalidateLayout(forBoundsChange newBounds: CGRect) -> Bool {
+        return true
+    }
+    
     //MARK: - Helpers
-    func indexPathsOfItems(inRect rect: CGRect) -> Array<Any> {
+    func indexPathsOfItems(inRect rect: CGRect) -> [NSIndexPath] {
         let minVisibleDay = self.dayIndexFromXCoordinate(xPosition: rect.minX)
         let maxVisibleDay = self.dayIndexFromXCoordinate(xPosition: rect.maxX)
         let minVisibleHour = self.hourIndexFromXCoordinate(yPosition: rect.minX)
         let maxVisibleHour = self.hourIndexFromXCoordinate(yPosition: rect.maxX)
         
         let dataSource = self.collectionView?.dataSource as! CalendarDataSource
-        let indexPaths = dataSource
+        let indexPaths = dataSource.indexPathsOfEvents(betweenMinDayIndex: minVisibleDay, maxDayIndex: maxVisibleDay, minStartHour: minVisibleHour, maxStartHour: maxVisibleHour)
         
         return indexPaths
         
@@ -61,9 +107,9 @@ class WeekLayout: UICollectionViewLayout {
         return hourIndex
     }
     
-    func indexPathsOfDayHeaderViews(inRect rect: CGRect) -> [NSIndexPath]? {
+    func indexPathsOfDayHeaderViews(inRect rect: CGRect) -> [NSIndexPath] {
         if rect.maxY > CGFloat(WeekLayout.dayHeaderHeight) {
-            return nil
+            return []
         }
         
         var indexPaths = [NSIndexPath]()
@@ -79,9 +125,9 @@ class WeekLayout: UICollectionViewLayout {
         return indexPaths
     }
     
-    func indexPathsOfHourHeaderViews(inRect rect: CGRect) -> [NSIndexPath]? {
+    func indexPathsOfHourHeaderViews(inRect rect: CGRect) -> [NSIndexPath] {
         if rect.maxY > CGFloat(WeekLayout.hourHeaderWidth) {
-            return nil
+            return []
         }
         
         var indexPaths = [NSIndexPath]()

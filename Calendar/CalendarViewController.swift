@@ -17,11 +17,20 @@ class CalendarViewController: UICollectionViewController {
 
         // Uncomment the following line to preserve selection between presentations
         // self.clearsSelectionOnViewWillAppear = false
+        
+        self.collectionView?.backgroundColor = UIColor.white
 
         // Register cell classes
         self.collectionView!.register(UICollectionViewCell.self, forCellWithReuseIdentifier: reuseIdentifier)
+        self.collectionView!.register(HeaderView.self, forSupplementaryViewOfKind: "DayHeaderView", withReuseIdentifier: "HeaderView")
+        self.collectionView!.register(HeaderView.self, forSupplementaryViewOfKind: "HourHeaderView", withReuseIdentifier: "HeaderView")
 
         // Do any additional setup after loading the view.
+        let calendarDataSource = self.collectionView?.dataSource as? CalendarDataSource
+        calendarDataSource?.configureCell = {(cell, indexPath, event) in
+            cell.titleLabel.text = event.title
+        }
+        
     }
 
     override func didReceiveMemoryWarning() {
