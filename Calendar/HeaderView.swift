@@ -8,14 +8,19 @@
 
 import UIKit
 
-class HeaderView: UIView {
+class HeaderView: UICollectionReusableView {
 
     var titleLabel: UILabel!
+    var separatorLine: UIView!
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
-        titleLabel = UILabel(frame: frame)
-        titleLabel.contentMode = .center
-        self.addSubview(titleLabel)
+        self.titleLabel = UILabel(frame: CGRect(origin: CGPoint(), size: frame.size))
+        self.addSubview(self.titleLabel)
+        
+        self.separatorLine = UIView(frame: CGRect(origin: CGPoint(x: 0, y: self.frame.size.height - 0.5), size: CGSize(width: self.frame.size.width, height: 0.5)))
+        self.separatorLine.backgroundColor = .lightGray
+        self.addSubview(self.separatorLine)
     }
     
     required init?(coder aDecoder: NSCoder) {

@@ -28,8 +28,8 @@ class WeekLayout: UICollectionViewLayout {
     override func layoutAttributesForElements(in rect: CGRect) -> [UICollectionViewLayoutAttributes]? {
         
         var layoutAttributes = [UICollectionViewLayoutAttributes]()
-        let visibleIndexPaths = self.indexPathsOfItems(inRect: rect)
         
+        let visibleIndexPaths = self.indexPathsOfItems(inRect: rect)
         for indexPath in visibleIndexPaths {
             let attributes = self.layoutAttributesForItem(at: indexPath as IndexPath)
             layoutAttributes.append(attributes!)
@@ -38,13 +38,13 @@ class WeekLayout: UICollectionViewLayout {
         
         let dayHeaderViewIndexPaths = self.indexPathsOfDayHeaderViews(inRect: rect)
         for indexPath in dayHeaderViewIndexPaths {
-            let attributes = self.layoutAttributesForSupplementaryView(ofKind: "DayHeaderView", at: indexPath as IndexPath)
+            let attributes = self.layoutAttributesForSupplementaryView(ofKind: "DayHeaderView", at: indexPath)
             layoutAttributes.append(attributes!)
         }
         
-        let hourHeaderViewIndexPaths = self.indexPathsOfDayHeaderViews(inRect: rect)
+        let hourHeaderViewIndexPaths = self.indexPathsOfHourHeaderViews(inRect: rect)
         for indexPath in hourHeaderViewIndexPaths {
-            let attributes = self.layoutAttributesForSupplementaryView(ofKind: "HourHeaderView", at: indexPath as IndexPath)
+            let attributes = self.layoutAttributesForSupplementaryView(ofKind: "HourHeaderView", at: indexPath)
             layoutAttributes.append(attributes!)
         }
         
@@ -53,7 +53,7 @@ class WeekLayout: UICollectionViewLayout {
     
     override func layoutAttributesForItem(at indexPath: IndexPath) -> UICollectionViewLayoutAttributes? {
         let dataSource = self.collectionView?.dataSource as! CalendarDataSource
-        let event = dataSource.eventAtIndexPath(indexPath: indexPath as NSIndexPath)
+        let event = dataSource.event(at:indexPath)
         let attributes = UICollectionViewLayoutAttributes(forCellWith: indexPath)
         attributes.frame = self.frameForEvent(event: event)
         return attributes
@@ -68,12 +68,10 @@ class WeekLayout: UICollectionViewLayout {
             attributes.frame = CGRect(x: CGFloat(WeekLayout.hourHeaderWidth) + widthPerDay * CGFloat(indexPath.item), y: 0, width: widthPerDay, height: CGFloat(WeekLayout.dayHeaderHeight))
             attributes.zIndex = -10
         } else if elementKind == "HourHeaderView" {
-            
-            attributes.frame = CGRect(x: 0, y: CGFloat(WeekLayout.hourHeaderWidth) + CGFloat(WeekLayout.heightPerHour) * CGFloat(indexPath.item), width: totalWidth, height: CGFloat(WeekLayout.heightPerHour))
+            attributes.frame = CGRect(x: 0, y: CGFloat(WeekLayout.dayHeaderHeight) + CGFloat(WeekLayout.heightPerHour) * CGFloat(indexPath.item), width: totalWidth, height: CGFloat(WeekLayout.heightPerHour))
+            attributes.zIndex = -10;
         }
-        
         return attributes
-        
     }
     
     override func shouldInvalidateLayout(forBoundsChange newBounds: CGRect) -> Bool {
@@ -84,8 +82,8 @@ class WeekLayout: UICollectionViewLayout {
     func indexPathsOfItems(inRect rect: CGRect) -> [NSIndexPath] {
         let minVisibleDay = self.dayIndexFromXCoordinate(xPosition: rect.minX)
         let maxVisibleDay = self.dayIndexFromXCoordinate(xPosition: rect.maxX)
-        let minVisibleHour = self.hourIndexFromXCoordinate(yPosition: rect.minX)
-        let maxVisibleHour = self.hourIndexFromXCoordinate(yPosition: rect.maxX)
+        let minVisibleHour = self.hourIndexFromYCoordinate(yPosition: rect.minY)
+        let maxVisibleHour = self.hourIndexFromYCoordinate(yPosition: rect.maxY)
         
         let dataSource = self.collectionView?.dataSource as! CalendarDataSource
         let indexPaths = dataSource.indexPathsOfEvents(betweenMinDayIndex: minVisibleDay, maxDayIndex: maxVisibleDay, minStartHour: minVisibleHour, maxStartHour: maxVisibleHour)
@@ -101,45 +99,41 @@ class WeekLayout: UICollectionViewLayout {
         return dayIndex
     }
     
-    func hourIndexFromXCoordinate(yPosition: CGFloat) -> Int {
+    func hourIndexFromYCoordinate(yPosition: CGFloat) -> Int {
         
-        let hourIndex = max(0, Int(yPosition - CGFloat(WeekLayout.hourHeaderWidth / WeekLayout.heightPerHour)))
+        let hourIndex = max(0, Int((yPosition - CGFloat(WeekLayout.dayHeaderHeight)) /  CGFloat(WeekLayout.heightPerHour)))
         return hourIndex
     }
     
-    func indexPathsOfDayHeaderViews(inRect rect: CGRect) -> [NSIndexPath] {
-        if rect.maxY > CGFloat(WeekLayout.dayHeaderHeight) {
+    func indexPathsOfDayHeaderViews(inRect rect: CGRect) -> [IndexPath] {
+        if rect.minY > CGFloat(WeekLayout.dayHeaderHeight) {
             return []
         }
         
-        var indexPaths = [NSIndexPath]()
+        var indexPaths = [IndexPath]()
         
-        var minDayIndex = self.dayIndexFromXCoordinate(xPosition: rect.minX)
+        let minDayIndex = self.dayIndexFromXCoordinate(xPosition: rect.minX)
         let maxDayIndex = self.dayIndexFromXCoordinate(xPosition: rect.maxX)
-        
-        repeat {
-            indexPaths.append(NSIndexPath(item: minDayIndex, section: 0))
-            minDayIndex += 1
-        } while minDayIndex > maxDayIndex
-        
+
+        for idx in minDayIndex ... maxDayIndex {
+            indexPaths.append(IndexPath(item: idx, section: 0))
+        }
         return indexPaths
     }
     
-    func indexPathsOfHourHeaderViews(inRect rect: CGRect) -> [NSIndexPath] {
-        if rect.maxY > CGFloat(WeekLayout.hourHeaderWidth) {
+    func indexPathsOfHourHeaderViews(inRect rect: CGRect) -> [IndexPath] {
+        if rect.minX > CGFloat(WeekLayout.hourHeaderWidth) {
             return []
         }
         
-        var indexPaths = [NSIndexPath]()
+        var indexPaths = [IndexPath]()
         
-        var minDayIndex = self.hourIndexFromXCoordinate(yPosition: rect.minX)
-        let maxDayIndex = self.hourIndexFromXCoordinate(yPosition: rect.maxX)
+        let minHourIndex = self.hourIndexFromYCoordinate(yPosition: rect.minY)
+        let maxHourIndex = self.hourIndexFromYCoordinate(yPosition: rect.maxY)
         
-        repeat {
-            indexPaths.append(NSIndexPath(item: minDayIndex, section: 0))
-            minDayIndex += 1
-        } while minDayIndex > maxDayIndex
-        
+        for idx in minHourIndex ... maxHourIndex {
+            indexPaths.append(IndexPath(item: idx, section: 0))
+        }
         return indexPaths
     }
     
@@ -152,7 +146,7 @@ class WeekLayout: UICollectionViewLayout {
         frame.origin.y = CGFloat(WeekLayout.dayHeaderHeight) + CGFloat(WeekLayout.heightPerHour * event.startHour!)
         frame.size.width = widthPerDay
         frame.size.height = CGFloat(event.durationInHours!) * CGFloat(WeekLayout.heightPerHour)
-        frame = CGRect(origin: CGPoint(x: CGFloat(WeekLayout.horizontalSpacing / 2), y: 0), size: frame.size)
+        frame = frame.insetBy(dx: CGFloat(WeekLayout.horizontalSpacing / 2), dy: 0)
         return frame
     }
     

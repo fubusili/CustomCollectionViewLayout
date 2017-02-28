@@ -11,13 +11,18 @@ class CalendarCell: UICollectionViewCell {
     var titleLabel: UILabel!
     override init(frame: CGRect) {
         super.init(frame: frame)
-        titleLabel = UILabel(frame: frame)
-        titleLabel.contentMode = .center
-        self.contentView.addSubview(titleLabel)
         
-        self.layer.cornerRadius = 1.0
+        self.titleLabel = UILabel(frame: CGRect(origin: CGPoint(), size: frame.size))
+        self.titleLabel.contentMode = .center
+        self.contentView.addSubview(self.titleLabel)
+        self.titleLabel.font = UIFont.systemFont(ofSize: 12.0)
+        self.titleLabel.numberOfLines = 0
+        self.titleLabel.textColor = .orange
+        
+        self.layer.cornerRadius = 4.0
         self.layer.borderWidth = 1.0
-        self.layer.borderColor = UIColor.cyan.cgColor
+        self.layer.masksToBounds = true
+        self.layer.borderColor = UIColor.lightGray.cgColor
     }
     
     required init?(coder aDecoder: NSCoder) {
