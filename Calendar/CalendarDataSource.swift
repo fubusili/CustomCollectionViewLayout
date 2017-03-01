@@ -43,7 +43,6 @@ class CalendarDataSource:NSObject, UICollectionViewDataSource {
             if event.day! >= minDayIndex && event.day! <= maxDayIndex && event.startHour! >= minStartHour && event.startHour! <= maxStartHour {
                 indexPaths.append(NSIndexPath(item: index, section: 0))
             }
-            
         }
         return indexPaths
     }

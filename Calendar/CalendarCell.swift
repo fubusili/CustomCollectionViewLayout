@@ -12,7 +12,7 @@ class CalendarCell: UICollectionViewCell {
     override init(frame: CGRect) {
         super.init(frame: frame)
         
-        self.titleLabel = UILabel(frame: CGRect(origin: CGPoint(), size: frame.size))
+        self.titleLabel = UILabel()
         self.titleLabel.contentMode = .center
         self.contentView.addSubview(self.titleLabel)
         self.titleLabel.font = UIFont.systemFont(ofSize: 12.0)
@@ -23,6 +23,11 @@ class CalendarCell: UICollectionViewCell {
         self.layer.borderWidth = 1.0
         self.layer.masksToBounds = true
         self.layer.borderColor = UIColor.lightGray.cgColor
+    }
+    
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        self.titleLabel.frame = CGRect(origin: CGPoint(), size: frame.size)
     }
     
     required init?(coder aDecoder: NSCoder) {

@@ -15,12 +15,18 @@ class HeaderView: UICollectionReusableView {
     
     override init(frame: CGRect) {
         super.init(frame: frame)
-        self.titleLabel = UILabel(frame: CGRect(origin: CGPoint(), size: frame.size))
+        self.titleLabel = UILabel()
         self.addSubview(self.titleLabel)
         
-        self.separatorLine = UIView(frame: CGRect(origin: CGPoint(x: 0, y: self.frame.size.height - 0.5), size: CGSize(width: self.frame.size.width, height: 0.5)))
+        self.separatorLine = UIView()
         self.separatorLine.backgroundColor = .lightGray
         self.addSubview(self.separatorLine)
+    }
+    
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        self.titleLabel.frame = CGRect(origin: CGPoint(), size: frame.size)
+        self.separatorLine.frame =  CGRect(origin: CGPoint(x: 0, y: self.frame.size.height - 0.5), size: CGSize(width: self.frame.size.width, height: 0.5))
     }
     
     required init?(coder aDecoder: NSCoder) {
